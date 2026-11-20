@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% include '_head.html' %}
+  <title>Studiora AI</title>
+</head>
+<body>
+  <div class="nebula"><i></i><i></i><i></i></div>
+  <canvas id="cosmos"></canvas>
+  {% include 'icons.html' %}
+  {% include '_splash.html' %}
+
+  <div class="app" id="app">
+    <div class="scrim" id="scrim"></div>
+
+    <!-- ============ Sidebar ============ -->
+    <aside class="sidebar glass" id="sidebar">
+      <div class="side-head">
+        <button class="logo" id="logo" title="Toggle sidebar" aria-label="Studiora AI — toggle sidebar">
+          <span data-orb="40" data-logo></span>
+          <span class="wordmark">Studiora <b>AI</b></span>
+        </button>
+        <button class="icon-btn collapse-btn rip-host" id="collapseBtn" aria-label="Collapse sidebar" title="Collapse sidebar (Ctrl+B)">
+          <svg class="ic"><use href="#i-panel-close"/></svg>
+        </button>
+      </div>
+
+      <button class="nav-btn new-chat rip-host" id="newChat" title="New chat (Ctrl+K)">
+        <svg class="ic"><use href="#i-message"/></svg><span class="label">New Chat</span>
+      </button>
+
+      <label class="nav-btn search" id="searchRow" title="Search chats">
+        <svg class="ic"><use href="#i-search"/></svg>
+        <input id="chatSearch" class="label" placeholder="Search chats…" aria-label="Search chats" autocomplete="off">
+      </label>
+
+      <div class="side-scroll">
+        <div id="chatList"></div>
+      </div>
+
+      <div class="stats glass" data-spot>
+        <div class="stats-title"><svg class="ic"><use href="#i-sparkles"/></svg>Your universe</div>
+        <div class="stat-row">
+          <div class="stat"><b id="stChats">0</b><span>chats</span></div>
+          <div class="stat"><b id="stDocs">0</b><span>files</span></div>
+          <div class="stat"><b id="stAsked">0</b><span>asked</span></div>
+        </div>
+      </div>
+
+      <button class="nav-btn rip-host" id="settingsBtn" style="margin-top:10px" title="Settings">
+        <svg class="ic"><use href="#i-settings"/></svg><span class="label">Settings</span>
+      </button>
+
+      <div class="user-bar">
+        <div class="avatar" id="avatar">S</div>
+        <div class="user-meta label"><b id="userName">Student</b><span>Student</span></div>
+        <button class="icon-btn rip-host" id="logout" title="Log out" aria-label="Log out"><svg class="ic"><use href="#i-logout"/></svg></button>
+      </div>
+    </aside>
+
+    <!-- ============ Stage ============ -->
+    <main class="stage">
+      <header class="topbar">
+        <button class="icon-btn toggle rip-host" id="openMenu" aria-label="Open sidebar" title="Open sidebar (Ctrl+B)">
+          <svg class="ic"><use href="#i-panel-open"/></svg>
+        </button>
+
+        <div class="pop-host">
+          <button class="pill" id="modelBtn" aria-haspopup="true" aria-expanded="false">
+            <i class="dot"></i><span id="modelLabel">Model</span><svg class="ic"><use href="#i-chevron-down"/></svg>
+          </button>
+          <div class="pop" id="modelPop" role="menu"></div>
+        </div>
+
+        <div class="crumb" id="chatTitle">New chat</div>
+
+        <div class="pop-host">
+          <button class="round-btn rip-host" id="moreBtn" aria-label="More" aria-haspopup="true"><svg class="ic"><use href="#i-more"/></svg></button>
+          <div class="pop right" id="morePop" role="menu">
+            <button class="pop-item" data-act="export"><svg class="ic"><use href="#i-download"/></svg>Export chat</button>
+            <button class="pop-item" data-act="clear"><svg class="ic"><use href="#i-eraser"/></svg>Clear messages</button>
+            <div class="pop-sep"></div>
+            <button class="pop-item danger" data-act="delete"><svg class="ic"><use href="#i-trash"/></svg>Delete chat</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="messages" id="messages"><div class="thread" id="thread"></div></section>
+
+      <div class="composer-wrap">
+        <button class="to-bottom" id="toBottom" aria-label="Scroll to latest"><svg class="ic"><use href="#i-arrow-down"/></svg></button>
+        <div class="composer" id="composer">
+          <div class="chips" id="chips"></div>
+          <textarea id="input" rows="1" placeholder="Send a message or drop a file…" aria-label="Message"></textarea>
+          <div class="tools-row">
+            <button class="pill-btn rip-host" id="attachBtn" title="Attach PDF, DOCX, TXT, MD or CSV">
+              <svg class="ic"><use href="#i-paperclip"/></svg>Files<span class="count" id="fileCount">0</span>
+            </button>
+            <div class="pop-host">
+              <button class="pill-btn rip-host" id="createBtn" aria-haspopup="true" aria-expanded="false" title="Create a document, diagram or quiz">
+                <svg class="ic"><use href="#i-sparkles"/></svg>Create
+              </button>
+              <div class="pop up" id="createPop" role="menu">
+                <div class="pop-title"><span>Create with Studiora</span></div>
+                <button class="pop-item" data-fill="Create a PDF of short notes on "><svg class="ic"><use href="#i-file"/></svg>PDF · short notes</button>
+                <button class="pop-item" data-fill="Create a Word document of detailed notes on "><svg class="ic"><use href="#i-file"/></svg>Word · detailed notes</button>
+                <button class="pop-item" data-fill="Draw a diagram of "><svg class="ic"><use href="#i-layers"/></svg>Diagram with zoom</button>
+                <button class="pop-item" data-fill="Ask me MCQ questions one by one on "><svg class="ic"><use href="#i-help"/></svg>Quiz · MCQ one by one</button>
+              </div>
+            </div>
+            <div class="tray" id="tray" aria-label="Files in this chat"></div>
+            <span class="spacer"></span>
+            <button class="send rip-host" id="send" aria-label="Send" disabled><svg class="ic" id="sendIcon"><use href="#i-send"/></svg></button>
+          </div>
+        </div>
+        <div class="hint">Enter to send · Shift+Enter for new line · Studiora can make mistakes</div>
+      </div>
+      <input type="file" id="fileInput" accept=".pdf,.txt,.docx,.md,.csv" hidden multiple>
+    </main>
+  </div>
+
+  <div class="dropzone" id="dropzone"><div><span data-orb="86" data-cls="float"></span><h3>Drop to feed the universe</h3><p>PDF · DOCX · TXT · MD · CSV</p></div></div>
+  <div class="toasts" id="toasts"></div>
+
+  <!-- confirm -->
+  <div class="modal-back" id="modalBack">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3 id="modalTitle">Are you sure?</h3>
+      <p id="modalText"></p>
+      <div class="row"><button class="btn" id="modalCancel">Cancel</button><button class="btn danger" id="modalOk">Delete</button></div>
+    </div>
+  </div>
+
+  <!-- settings -->
+  <div class="modal-back" id="settingsBack">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+      <h3 id="setTitle">Settings</h3>
+      <p>Tune your universe.</p>
+      <div class="set-row"><div><b>Cosmic background</b><small>Interactive starfield behind the app</small></div><button class="switch" id="swCosmos" role="switch" aria-checked="true" aria-label="Cosmic background"></button></div>
+      <div class="set-row"><div><b>Calm mode</b><small>Reduce decorative motion</small></div><button class="switch" id="swCalm" role="switch" aria-checked="false" aria-label="Calm mode"></button></div>
+      <div class="keys">
+        <kbd>Ctrl K</kbd><span>New chat</span>
+        <kbd>Ctrl B</kbd><span>Collapse / expand sidebar</span>
+        <kbd>/</kbd><span>Focus the message box</span>
+        <kbd>Esc</kbd><span>Close menus</span>
+      </div>
+      <div class="row" style="margin-top:22px"><button class="btn primary" id="settingsClose">Done</button></div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='cosmos.js') }}"></script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

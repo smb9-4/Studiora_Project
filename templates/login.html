@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% include '_head.html' %}
+  <title>Studiora AI · Sign in</title>
+</head>
+<body>
+  <div class="nebula"><i></i><i></i><i></i></div>
+  <canvas id="cosmos"></canvas>
+  {% include 'icons.html' %}
+  {% include '_splash.html' %}
+
+  <main class="auth-wrap">
+    <section class="auth-card glass" id="card">
+      <span data-orb="92" data-cls="float" id="loginOrb"></span>
+      <h1>Studiora <b>AI</b></h1>
+      <p class="tagline">Your private AI study universe</p>
+
+      <div class="tabs" id="tabs" data-mode="login" role="tablist">
+        <div class="indicator"></div>
+        <button type="button" class="active" data-mode="login" role="tab">Sign In</button>
+        <button type="button" data-mode="signup" role="tab">Sign Up</button>
+      </div>
+
+      <form id="form" novalidate>
+        <div class="field">
+          <label for="username">Username</label>
+          <div class="input-row">
+            <svg class="ic lead"><use href="#i-user"/></svg>
+            <input class="input" id="username" autocomplete="username" placeholder="e.g. ravi_k">
+          </div>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-row">
+            <svg class="ic lead"><use href="#i-lock"/></svg>
+            <input class="input" id="password" type="password" autocomplete="current-password" placeholder="••••••••">
+            <button type="button" class="reveal" id="reveal" aria-label="Show password"><svg class="ic" id="revealIcon"><use href="#i-eye"/></svg></button>
+          </div>
+          <div class="strength"><i id="strengthBar"></i></div>
+        </div>
+        <p class="form-error" id="error" role="alert"></p>
+        <button class="btn-primary rip-host" id="submit" type="submit"><span id="submitLabel">Sign In</span></button>
+      </form>
+
+      <ul class="feature-pills">
+        <li><svg class="ic"><use href="#i-file"/></svg>Chat with your notes</li>
+        <li><svg class="ic"><use href="#i-sparkles"/></svg>Streaming answers</li>
+        <li><svg class="ic"><use href="#i-lock"/></svg>Runs locally</li>
+      </ul>
+      <p class="auth-note">Your questions and documents stay private to your account.</p>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='cosmos.js') }}"></script>
+  <script>
+    const S = window.Studiora;
+    S.Splash.ready().then(() => S.Splash.hide()).then(() => document.getElementById('username').focus());
+
+    const tabs = document.getElementById('tabs');
+    const form = document.getElementById('form');
+    const err = document.getElementById('error');
+    const pw = document.getElementById('password');
+    const btn = document.getElementById('submit');
+    const label = document.getElementById('submitLabel');
+    const orb = document.getElementById('loginOrb') || document.querySelector('.auth-card .orb');
+    let mode = 'login';
+
+    tabs.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      mode = b.dataset.mode;
+      tabs.dataset.mode = mode;
+      tabs.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+      label.textContent = mode === 'login' ? 'Sign In' : 'Create account';
+      pw.autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+      err.textContent = '';
+    }));
+
+    document.getElementById('reveal').addEventListener('click', () => {
+      const show = pw.type === 'password';
+      pw.type = show ? 'text' : 'password';
+      document.getElementById('revealIcon').innerHTML = `<use href="#i-${show ? 'eye-off' : 'eye'}"/>`;
+    });
+
+    pw.addEventListener('input', () => {
+      const v = pw.value;
+      let s = 0;
+      if (v.length >= 6) s++;
+      if (v.length >= 10) s++;
+      if (/[A-Z]/.test(v) && /[a-z]/.test(v)) s++;
+      if (/\d/.test(v) && /[^A-Za-z0-9]/.test(v)) s++;
+      const bar = document.getElementById('strengthBar');
+      bar.style.width = (v ? Math.max(s, 1) * 25 : 0) + '%';
+      bar.style.background = ['#fb7185', '#fb7185', '#fbbf24', '#7dc3ff', '#34d399'][s];
+    });
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      err.textContent = '';
+      const username = document.getElementById('username').value.trim();
+      const password = pw.value;
+      if (!username || !password) return fail('Enter your username and password.');
+      btn.disabled = true;
+      const old = label.textContent;
+      label.innerHTML = '<span class="spinner"></span>';
+      S.setOrbState(document.querySelector('.auth-card .orb'), 'thinking');
+      try {
+        const r = await fetch(`/api/auth/${mode}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error || 'Something went wrong');
+        S.Cosmos.warp(3.2);
+        document.querySelector('.auth-card').style.transition = 'transform .6s, opacity .6s';
+        document.querySelector('.auth-card').style.transform = 'scale(1.12)';
+        document.querySelector('.auth-card').style.opacity = '0';
+        setTimeout(() => { location.href = '/'; }, 520);
+      } catch (ex) {
+        label.textContent = old;
+        btn.disabled = false;
+        S.setOrbState(document.querySelector('.auth-card .orb'), 'idle');
+        fail(ex.message);
+      }
+    });
+
+    function fail(msg) {
+      err.textContent = msg;
+      const c = document.getElementById('card');
+      c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
+    }
+  </script>
+</body>
+</html>
